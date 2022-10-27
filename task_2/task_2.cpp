@@ -2,74 +2,95 @@
 #include <exception>
 
 template <class T>
+class Row
+{
+public:
+    Row() = default;
+
+    Row(size_t _cellsQ) : row(new T[_cellsQ]()), cellsQ(_cellsQ) {}
+
+    Row(const Row &other) = delete;
+
+    ~Row() { delete[] row; }
+
+    T &operator[](size_t index)
+    {
+        if (index >= cellsQ)
+        {
+            throw std::runtime_error("Wrong index for column!");
+        }
+        return row[index];
+    }
+
+    Row &operator=(const Row &other) = default;
+
+private:
+    T *row = nullptr;
+    size_t cellsQ{0};
+};
+
+template <class T>
 class Table
 {
 public:
-    Table(unsigned int _rowNum, unsigned int _colNum)
+    Table() = default;
+
+    Table(size_t _rowsQ, size_t _colsQ)
     {
-        if (_rowNum <= 0 || _colNum <= 0)
+        if (_rowsQ == 0 || _colsQ == 0)
         {
-            throw std::runtime_error("Wrong inputs! Input numbers should be positive.");
+            throw std::runtime_error("Wrong inputs. Input numbers should be positive.");
         }
         else
         {
-            rowNum = _rowNum;
-            colNum = _colNum;
-            tab = new T *[rowNum];
-            for (unsigned int i = 0; i < rowNum; ++i)
+            rowsQ = _rowsQ;
+            colsQ = _colsQ;
+            tab = new Row<T>[rowsQ];
+            for (size_t i = 0; i < rowsQ; ++i)
             {
-                tab[i] = new T[colNum]();
+                tab[i] = Row<T>(colsQ);
             }
         }
     }
 
+    Table(const Table &other) = default;
+
     ~Table()
     {
-        for (unsigned int i = 0; i < rowNum; ++i)
-        {
-            delete[] tab[i];
-        }
         delete[] tab;
     }
 
-    T *operator[](unsigned int index)
+    Row<T> &operator[](size_t index)
     {
-        if (index < 0 && index >= colNum)
+        if (index >= rowsQ)
         {
-            throw std::runtime_error("Column index is out of range.");
+            throw std::runtime_error("Wrong index for row!");
         }
-        else
-        {
-            return tab[index];
-        }
+        return tab[index];
     }
 
-    T operator[](unsigned int index) const
+    Table &operator=(const Table &other) = default;
+
+    void size() const
     {
-        if (index < 0 && index >= rowNum)
-        {
-            throw std::runtime_error("Row index is out of range.");
-        }
-        else
-        {
-            return (*tab)[index];
-        }
+        std::cout << "Table contains " << rowsQ << " row(s) and " << colsQ << " collumn(s)." << std::endl;
     }
 
 private:
-    T **tab;
-    unsigned int rowNum{0};
-    unsigned int colNum{0};
+    Row<T> *tab = nullptr;
+    size_t rowsQ{0};
+    size_t colsQ{0};
 };
 
 int main(int argc, char **argv)
 {
     try
     {
-        Table<int> test(1, 2);
+        auto test = Table<int>(1, 2);
         test[0][0] = 4;
-        test[0][1] = 5;
-        std::cout << test[0][2];
+        std::cout << test[0][0] << std::endl;
+        test.size();
+
         return 0;
     }
     catch (const std::runtime_error &e)
